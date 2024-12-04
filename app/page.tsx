@@ -1,8 +1,19 @@
+"use client";
+
 import Header from '../components/Header';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
+import { useState } from 'react';
+import '../styles/globals.css';
 
 export default function Home() {
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSubmitted(true);
+  };
+
   return (
     <>
       <Header />
@@ -21,10 +32,14 @@ export default function Home() {
         </article>
         <div className="newsletter-signup">
           <h2>Subscribe to my Newsletter</h2>
-          <form onSubmit={(e) => e.preventDefault()}>
-            <input type="email" placeholder="Email address" required />
-            <button type="submit">Subscribe</button>
-          </form>
+          {!submitted ? (
+            <form onSubmit={handleSubmit}>
+              <input type="email" placeholder="Email address" required />
+              <button type="submit">Subscribe</button>
+            </form>
+          ) : (
+            <p>Thank you for subscribing to my newsletter!</p>
+          )}
         </div>
       </div>
       <Footer />
