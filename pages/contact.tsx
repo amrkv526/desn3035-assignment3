@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useState } from 'react';
+import '../styles/globals.css';
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
