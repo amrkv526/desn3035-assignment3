@@ -9,6 +9,31 @@ import { format } from 'date-fns';
 import '../../styles/globals.css';
 import Image from 'next/image';
 
+// Define the fields for the blog post
+interface EntryFields {
+  title?: string;
+  date?: string;
+  image?: {
+    fields: {
+      file: {
+        url: string;
+      };
+    };
+  };
+  content?: string;
+  genre?: string;
+  tags?: string[];
+}
+
+// Define the Contentful Entry type
+interface ContentfulEntry {
+  sys: {
+    id: string;
+  };
+  fields: EntryFields;
+}
+
+// Define the final Post type used in the application
 interface Post {
   id: string;
   title: string;
@@ -19,149 +44,135 @@ interface Post {
   tags: string[];
 }
 
-interface Entry {
-  sys: {
-    id: string;
+// Utility function to transform Contentful entry into Post
+const transformEntryToPost = async (entry: ContentfulEntry): Promise<Post> => {
+  const { sys, fields } = entry;
+  const parsedContent = fields.content ? await marked(fields.content) : '';
+  return {
+    id: sys.id,
+    title: fields.title || 'Untitled',
+    date: fields.date || '',
+    image: fields.image?.fields.file.url ? `https:${fields.image.fields.file.url}` : '',
+    content: parsedContent,
+    genre: fields.genre || '',
+    tags: fields.tags || [],
   };
-  fields: {
-    title: string;
-    date: string;
-    image: {
-      fields: {
-        file: {
-          url: string;
-        };
-      };
-    };
-    content: string;
-    genre?: string;
-    tags?: string[];
-  };
-}
-
-const extractFirstParagraph = async (content: string): Promise<string> => {
-  const htmlContent = await marked(content); 
-  const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/);
-  return match ? he.decode(match[1]) : '';
-};
-
-const getAbsoluteUrl = (url: string): string => {
-  if (url.startsWith('//')) {
-    return `https:${url}`;
-  }
-  if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  return url;
 };
 
 export default async function ArticlesPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | undefined>> | undefined; 
+  searchParams: Record<string, string | undefined> | undefined;
 }) {
-  const resolvedSearchParams = await Promise.resolve(searchParams || {}); 
-  const { search = '', genre = '', tags = '' } = resolvedSearchParams;
+  const resolvedSearchParams = searchParams || {};
+  const { search = '', genre = '', tags = '' } = resolvedSearchParams as {
+    search: string;
+    genre: string;
+    tags: string;
+  };
 
-  const entries = await client.getEntries({ content_type: 'blogPosts' });
+  try {
+    // Fetch entries with explicit typing
+    const rawEntries = await client.getEntries({ content_type: 'blogPosts' });
 
-  const posts: Post[] = entries.items.map((entry: Entry) => {
-    const { id } = entry.sys;
-    const { title, date, image, content, genre = '', tags = [] } = entry.fields;
-    return {
-      id,
-      title,
-      date,
-      image: getAbsoluteUrl(image.fields.file.url),
-      content,
-      genre,
-      tags,
-    };
-  });
+    // Transform raw entries into Post objects
+    const posts: Post[] = await Promise.all(rawEntries.items.map(transformEntryToPost));
 
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch = search
-      ? post.title.toLowerCase().includes(search.toLowerCase())
-      : true;
-    const matchesGenre = genre ? post.genre === genre : true;
-    const matchesTags = tags
-      ? tags.split(',').every((tag) => post.tags.includes(tag))
-      : true;
+    // Filter posts based on search, genre, and tags
+    const filteredPosts = posts.filter((post) => {
+      const matchesSearch = search
+        ? post.title.toLowerCase().includes(search.toLowerCase())
+        : true;
+      const matchesGenre = genre ? post.genre === genre : true;
+      const matchesTags = tags
+        ? tags.split(',').every((tag) => post.tags.includes(tag))
+        : true;
 
-    return matchesSearch && matchesGenre && matchesTags;
-  });
+      return matchesSearch && matchesGenre && matchesTags;
+    });
 
-  return (
-    <>
-      <Header />
-      <Navbar />
-      <div className="content">
-        <h2>All Articles</h2>
+    return (
+      <>
+        <Header />
+        <Navbar />
+        <div className="content">
+          <h2>All Articles</h2>
 
-        <form method="get" action="/articles" className="filter-form">
-          <input
-            type="text"
-            name="search"
-            placeholder="Search posts..."
-            defaultValue={search}
-            className="search-bar"
-          />
+          <form method="get" action="/articles" className="filter-form">
+            <input
+              type="text"
+              name="search"
+              placeholder="Search posts..."
+              defaultValue={search}
+              className="search-bar"
+            />
+            <select name="genre" defaultValue={genre} className="genre-filter">
+              <option value="">All Genres</option>
+              <option value="Techno">Techno</option>
+              <option value="House">House</option>
+              <option value="Trance">Trance</option>
+            </select>
+            <fieldset className="tags-filter">
+              <legend>Filter by Tags:</legend>
+              {['Club', 'Festival', 'Underground', 'Techno'].map((tag) => (
+                <label key={tag}>
+                  <input
+                    type="checkbox"
+                    name="tags"
+                    value={tag}
+                    defaultChecked={tags.split(',').includes(tag)}
+                  />
+                  {tag}
+                </label>
+              ))}
+            </fieldset>
+            <button type="submit">Apply Filters</button>
+          </form>
 
-          <select name="genre" defaultValue={genre} className="genre-filter">
-            <option value="">All Genres</option>
-            <option value="Techno">Techno</option>
-            <option value="House">House</option>
-            <option value="Trance">Trance</option>
-          </select>
-
-          <fieldset className="tags-filter">
-            <legend>Filter by Tags:</legend>
-            {['Club', 'Festival', 'Underground', 'Techno'].map((tag) => (
-              <label key={tag}>
-                <input
-                  type="checkbox"
-                  name="tags"
-                  value={tag}
-                  defaultChecked={tags.split(',').includes(tag)}
-                />
-                {tag}
-              </label>
-            ))}
-          </fieldset>
-
-          <button type="submit">Apply Filters</button>
-        </form>
-
-        {filteredPosts.length > 0 ? (
-          filteredPosts.map((post) => (
-            <article key={post.id}>
-              <h3>
-                <Link href={`/articles/${post.id}`}>{post.title}</Link>
-              </h3>
-              <p className="date">
-                Published on: {format(new Date(post.date), 'MMMM d, yyyy')}
-              </p>
-              {post.image ? (
-                <Image
-                  src={post.image}
-                  alt={post.title || 'Article image'}
-                  width={750}
-                  height={300}
-                />
-              ) : (
-                <div className="placeholder-image">
-                  <p>No image available</p>
-                </div>
-              )}
-              <p>{extractFirstParagraph(post.content)}...</p>
-              <Link href={`/articles/${post.id}`}>Read more</Link>
-            </article>
-          ))
-        ) : (
-          <p>No articles found.</p>
-        )}
-      </div>
-      <Footer />
-    </>
-  );
+          {filteredPosts.length > 0 ? (
+            filteredPosts.map((post) => (
+              <article key={post.id}>
+                <h3>
+                  <Link href={`/articles/${post.id}`}>{post.title}</Link>
+                </h3>
+                <p className="date">
+                  Published on: {format(new Date(post.date), 'MMMM d, yyyy')}
+                </p>
+                {post.image ? (
+                  <Image
+                    src={post.image}
+                    alt={post.title || 'Article image'}
+                    width={750}
+                    height={300}
+                  />
+                ) : (
+                  <div className="placeholder-image">
+                    <p>No image available</p>
+                  </div>
+                )}
+               <p>{he.decode(post.content.split('.')[0])}...</p>
+                <Link href={`/articles/${post.id}`}>Read more</Link>
+              </article>
+            ))
+          ) : (
+            <p>No articles found.</p>
+          )}
+        </div>
+        <Footer />
+      </>
+    );
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    return (
+      <>
+        <Header />
+        <Navbar />
+        <div className="content">
+          <h2>Error loading articles</h2>
+          <p>There was an issue fetching the articles. Please try again later.</p>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 }
