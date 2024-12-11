@@ -71,33 +71,35 @@ export default async function SingleArticle({
       tags: entry.fields.tags || [],
     };
     
-    
+    const articleTags: string[] = Array.isArray(article.tags) ? article.tags : [];
 
-  return (
-    <>
-      <Header />
-      <Navbar />
-      <div className="content single-article">
-        <h2 className="single-article-title">{article.title}</h2>
-        <p className="date single-article-date">Published on: {article.date}</p>
-        <Image
-          className="single-article-image"
-          src={article.image}
-          alt={article.title}
-          width={800}
-          height={600}
-        />
-        <div
-          className="single-article-content"
-          dangerouslySetInnerHTML={{ __html: article.content }}
-        ></div>
-        <div className="tags single-article-tags">
-          <strong>Tags:</strong> {article.tags.join(', ')}
-        </div>
+return (
+  <>
+    <Header />
+    <Navbar />
+    <div className="content single-article">
+      <h2 className="single-article-title">{String(article.title)}</h2>
+      <p className="date single-article-date">Published on: {article.date}</p>
+      <Image
+        className="single-article-image"
+        src={article.image}
+        alt={String(article.title)}
+        width={800}
+        height={600}
+      />
+      <div
+        className="single-article-content"
+        dangerouslySetInnerHTML={{ __html: article.content }}
+      ></div>
+      <div className="tags single-article-tags">
+        <strong>Tags:</strong> {articleTags.length > 0 ? articleTags.join(', ') : 'No tags available'}
       </div>
-      <Footer />
-    </>
-  );
+    </div>
+    <Footer />
+  </>
+);
+
+    
 }
 
 export async function generateStaticParams() {
