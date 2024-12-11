@@ -37,14 +37,17 @@ interface Entry {
   };
 }
 
-const formatContentAsHTML = (content: string): string => marked(content);
+const formatContentAsHTML = async (content: string | Promise<string>): Promise<string> => {
+  const resolvedContent = await Promise.resolve(content); 
+  return marked(resolvedContent);
+};
 
 export default async function SingleArticle({
   params,
 }: {
-  params: Promise<{ id: string }>; 
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; 
+  const { id } = await params;
 
   const entry = await client.getEntry<Entry>(id);
 
@@ -59,7 +62,7 @@ export default async function SingleArticle({
     image: entry.fields.image.fields.file.url.startsWith('http')
       ? entry.fields.image.fields.file.url
       : `https:${entry.fields.image.fields.file.url}`,
-    content: formatContentAsHTML(entry.fields.content),
+    content: await formatContentAsHTML(entry.fields.content), 
     genre: entry.fields.genre || '',
     tags: entry.fields.tags || [],
   };
