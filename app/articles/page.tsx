@@ -9,7 +9,7 @@ import { format } from 'date-fns';
 import '../../styles/globals.css';
 import Image from 'next/image';
 
-// Define the fields for the blog post
+
 interface EntryFields {
   title?: string;
   date?: string;
@@ -25,7 +25,6 @@ interface EntryFields {
   tags?: string[];
 }
 
-// Define the Contentful Entry type
 interface ContentfulEntry {
   sys: {
     id: string;
@@ -33,7 +32,6 @@ interface ContentfulEntry {
   fields: EntryFields;
 }
 
-// Define the final Post type used in the application
 interface Post {
   id: string;
   title: string;
@@ -44,7 +42,6 @@ interface Post {
   tags: string[];
 }
 
-// Utility function to transform Contentful entry into Post
 const transformEntryToPost = async (entry: ContentfulEntry): Promise<Post> => {
   const { sys, fields } = entry;
   const parsedContent = fields.content ? await marked(fields.content) : '';
@@ -59,26 +56,19 @@ const transformEntryToPost = async (entry: ContentfulEntry): Promise<Post> => {
   };
 };
 
-export default async function ArticlesPage({
-  searchParams,
-}: {
-  searchParams: Record<string, string | undefined> | undefined;
-}) {
+interface PageProps {
+  searchParams?: Record<string, string | undefined>;
+}
+
+export default async function ArticlesPage({ searchParams }: PageProps) {
   const resolvedSearchParams = searchParams || {};
-  const { search = '', genre = '', tags = '' } = resolvedSearchParams as {
-    search: string;
-    genre: string;
-    tags: string;
-  };
+  const { search = '', genre = '', tags = '' } = resolvedSearchParams;
 
   try {
-    // Fetch entries with explicit typing
     const rawEntries = await client.getEntries({ content_type: 'blogPosts' });
 
-    // Transform raw entries into Post objects
     const posts: Post[] = await Promise.all(rawEntries.items.map(transformEntryToPost));
 
-    // Filter posts based on search, genre, and tags
     const filteredPosts = posts.filter((post) => {
       const matchesSearch = search
         ? post.title.toLowerCase().includes(search.toLowerCase())
@@ -150,7 +140,7 @@ export default async function ArticlesPage({
                     <p>No image available</p>
                   </div>
                 )}
-               <p>{he.decode(post.content.split('.')[0])}...</p>
+                <p>{he.decode(post.content.split('.')[0] || '')}...</p>
                 <Link href={`/articles/${post.id}`}>Read more</Link>
               </article>
             ))
