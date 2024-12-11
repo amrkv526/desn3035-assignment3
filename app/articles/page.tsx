@@ -20,7 +20,7 @@ interface Post {
 }
 
 interface Props {
-  searchParams: { search?: string; genre?: string; tags?: string }; // No need for a Promise
+  searchParams: { search?: string; genre?: string; tags?: string }; 
 }
 
 interface Entry {
