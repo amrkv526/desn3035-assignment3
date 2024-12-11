@@ -42,9 +42,10 @@ const formatContentAsHTML = (content: string): string => marked(content);
 export default async function SingleArticle({
   params,
 }: {
-  params: { id: string };
+  params: { id: string } | Promise<{ id: string }>; // Support synchronous and asynchronous params
 }) {
-  const { id } = params;
+  const resolvedParams = await Promise.resolve(params); // Handle potential Promise type
+  const { id } = resolvedParams;
 
   const entry = await client.getEntry<Entry>(id);
 
