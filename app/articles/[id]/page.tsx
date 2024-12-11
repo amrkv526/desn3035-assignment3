@@ -13,9 +13,9 @@ interface BlogPostFields extends EntrySkeletonType {
   fields: {
     title: string;
     date: string; 
-    image: {
+    image?: {
       fields: {
-        file: {
+        file?: {
           url: string;
         };
       };
@@ -51,17 +51,27 @@ export default async function SingleArticle({
     ? format(new Date(String(dateField)), 'MMMM d, yyyy') 
     : 'Unknown Date'; 
     
+    const imageField = entry.fields.image as BlogPostFields['fields']['image'] | undefined;
+
     const article = {
       id: entry.sys.id,
       title: entry.fields.title,
       date: formattedDate,
-      image: entry.fields.image.fields.file.url.startsWith('http')
-      ? entry.fields.image.fields.file.url
-      : `https:${entry.fields.image.fields.file.url}`,
-      content: await formatContentAsHTML(entry.fields.content), 
+      image: imageField?.fields?.file?.url?.startsWith('http')
+        ? imageField.fields.file.url
+        : imageField?.fields?.file?.url
+        ? `https:${imageField.fields.file.url}`
+        : '/default-image-path.jpg',
+      content: await formatContentAsHTML(
+        typeof entry.fields.content === 'string'
+          ? entry.fields.content
+          : JSON.stringify(entry.fields.content) 
+      ),
       genre: entry.fields.genre || '',
       tags: entry.fields.tags || [],
     };
+    
+    
 
   return (
     <>
