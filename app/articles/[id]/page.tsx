@@ -7,19 +7,15 @@ import { marked } from 'marked';
 import '../../../styles/globals.css';
 import Image from 'next/image';
 
-interface Post {
-  id: string;
-  title: string;
-  date: string;
-  image: string;
-  content: string;
-  genre: string;
-  tags: string[];
-}
 
 interface Entry {
   sys: {
     id: string;
+    contentType: {
+      sys: {
+        id: string;
+      };
+    };
   };
   fields: {
     title: string;
@@ -37,8 +33,9 @@ interface Entry {
   };
 }
 
+
 const formatContentAsHTML = async (content: string | Promise<string>): Promise<string> => {
-  const resolvedContent = await Promise.resolve(content); 
+  const resolvedContent = await Promise.resolve(content);
   return marked(resolvedContent);
 };
 
@@ -49,20 +46,21 @@ export default async function SingleArticle({
 }) {
   const { id } = await params;
 
+
   const entry = await client.getEntry<Entry>(id);
 
   if (!entry) {
     return <div>Article not found.</div>;
   }
 
-  const article: Post = {
+  const article = {
     id: entry.sys.id,
     title: entry.fields.title,
     date: format(new Date(entry.fields.date), 'MMMM d, yyyy'),
     image: entry.fields.image.fields.file.url.startsWith('http')
       ? entry.fields.image.fields.file.url
       : `https:${entry.fields.image.fields.file.url}`,
-    content: await formatContentAsHTML(entry.fields.content), 
+    content: await formatContentAsHTML(entry.fields.content),
     genre: entry.fields.genre || '',
     tags: entry.fields.tags || [],
   };
