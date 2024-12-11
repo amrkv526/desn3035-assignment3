@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { marked } from 'marked';
 import Image from 'next/image';
+import { Asset } from 'contentful';
+
 
 interface Post {
   id: string;
@@ -15,35 +17,48 @@ interface Post {
   content: string;
 }
 
-const getFirstParagraph = (content: string): string => {
-  const htmlContent = marked(content);
+const getFirstParagraph = async (content: string): Promise<string> => {
+  const htmlContent = await marked(content); 
   const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/);
   return match ? match[1] : '';
 };
 
-const getAbsoluteUrl = (url: string): string => {
-  if (url.startsWith('//')) {
-    return `https:${url}`;
-  }
-  return url;
-};
 
 export default async function Home() {
   const entries = await client.getEntries({
     content_type: 'blogPosts',
-    order: '-fields.date',
+    order: ['-fields.date'], 
     limit: 1,
   });
+  
 
-  const latestPost: Post | null = entries.items.length > 0
-  ? {
-      id: entries.items[0].sys.id,
-      title: entries.items[0].fields.title || 'Untitled',
-      date: entries.items[0].fields.date || '',
-      image: getAbsoluteUrl(entries.items[0].fields.image?.fields.file.url || ''),
-      content: entries.items[0].fields.content || '',
+  const sanitizeString = (value: unknown, fallback = ''): string =>
+    typeof value === 'string' ? value : fallback;
+  
+  const getAbsoluteUrl = (url: string): string => {
+    if (url.startsWith('//')) {
+      return `https:${url}`;
     }
-  : null;
+    return url;
+  };
+  
+  const latestPost: Post | null = entries.items.length > 0
+    ? {
+        id: entries.items[0].sys.id,
+        title: sanitizeString(entries.items[0].fields.title, 'Untitled'),
+        date: sanitizeString(entries.items[0].fields.date),
+        image: getAbsoluteUrl(
+          sanitizeString(
+            (entries.items[0].fields.image as Asset)?.fields?.file?.url,
+            '/default-image.jpg' 
+          )
+        ),
+        content: sanitizeString(entries.items[0].fields.content),
+      }
+    : null;
+  
+  
+
 
 
   return (
