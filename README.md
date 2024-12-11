@@ -1,4 +1,4 @@
-# Featured Songs & Articles Blog
+# Electronic Music Blog
 
 This is a web application built using **Next.js** and **React**. It features an interactive music player with a visualizer and a blog section for articles. This README provides a comprehensive guide to setting up, running, and deploying the project locally.
 
