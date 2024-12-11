@@ -6,13 +6,13 @@ import { format } from 'date-fns';
 import { marked } from 'marked';
 import '../../../styles/globals.css';
 import Image from 'next/image';
-import { Entry, EntrySkeletonType } from 'contentful'; 
+import { Entry, EntrySkeletonType } from 'contentful';
 
 
 interface BlogPostFields extends EntrySkeletonType {
   fields: {
     title: string;
-    date: string;
+    date: string; 
     image: {
       fields: {
         file: {
@@ -39,17 +39,22 @@ export default async function SingleArticle({
 }) {
   const { id } = await params;
 
-  
   const entry: Entry<BlogPostFields> = await client.getEntry<BlogPostFields>(id);
 
   if (!entry) {
     return <div>Article not found.</div>;
   }
 
+
+  const dateField = entry.fields.date;
+  const formattedDate = dateField
+    ? format(new Date(dateField), 'MMMM d, yyyy') 
+    : 'Unknown Date'; 
+
   const article = {
     id: entry.sys.id,
     title: entry.fields.title,
-    date: format(new Date(entry.fields.date), 'MMMM d, yyyy'),
+    date: formattedDate,
     image: entry.fields.image.fields.file.url.startsWith('http')
       ? entry.fields.image.fields.file.url
       : `https:${entry.fields.image.fields.file.url}`,
