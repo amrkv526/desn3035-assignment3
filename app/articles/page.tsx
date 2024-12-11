@@ -20,7 +20,7 @@ interface Post {
 }
 
 interface Props {
-  searchParams: { search?: string; genre?: string; tags?: string }; 
+  searchParams?: { search?: string; genre?: string; tags?: string }; 
 }
 
 interface Entry {
@@ -44,23 +44,23 @@ interface Entry {
 }
 
 const extractFirstParagraph = (content: string): string => {
-  const htmlContent = marked(content); 
-  const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/); 
-  return match ? he.decode(match[1]) : ''; 
+  const htmlContent = marked(content);
+  const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/);
+  return match ? he.decode(match[1]) : '';
 };
 
 const getAbsoluteUrl = (url: string): string => {
   if (url.startsWith('//')) {
-    return `https:${url}`; 
+    return `https:${url}`;
   }
   if (!url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`; 
+    return `https://${url}`;
   }
-  return url; 
+  return url;
 };
 
 export default async function ArticlesPage({ searchParams }: Props) {
-  const { search = '', genre = '', tags = '' } = searchParams; 
+  const { search = '', genre = '', tags = '' } = searchParams || {}; 
 
   const entries = await client.getEntries({ content_type: 'blogPosts' });
 
