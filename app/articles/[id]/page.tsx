@@ -46,6 +46,7 @@ export default async function SingleArticle({
 }) {
   const { id } = params;
 
+  // Fetch the article entry by ID
   const entry = await client.getEntry<Entry>(id);
 
   const article: Post = {
