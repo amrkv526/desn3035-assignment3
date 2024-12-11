@@ -39,8 +39,8 @@ interface Entry {
   };
 }
 
-const extractFirstParagraph = (content: string): string => {
-  const htmlContent = marked(content);
+const extractFirstParagraph = async (content: string): Promise<string> => {
+  const htmlContent = await marked(content); 
   const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/);
   return match ? he.decode(match[1]) : '';
 };
