@@ -19,10 +19,6 @@ interface Post {
   tags: string[];
 }
 
-interface Props {
-  searchParams?: { search?: string; genre?: string; tags?: string }; 
-}
-
 interface Entry {
   sys: {
     id: string;
@@ -61,7 +57,9 @@ const getAbsoluteUrl = (url: string): string => {
 
 export default async function ArticlesPage({
   searchParams,
-}: { searchParams?: { search?: string; genre?: string; tags?: string } }) {
+}: {
+  searchParams?: { search?: string; genre?: string; tags?: string };
+}) {
   const { search = '', genre = '', tags = '' } = searchParams || {};
 
   const entries = await client.getEntries({ content_type: 'blogPosts' });
