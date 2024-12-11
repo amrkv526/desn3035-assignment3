@@ -35,15 +35,16 @@ export default async function Home() {
     limit: 1,
   });
 
-  const latestPost = entries.items.length > 0
-    ? {
-        id: entries.items[0].sys.id,
-        title: entries.items[0].fields.title || 'Untitled',
-        date: entries.items[0].fields.date || '',
-        image: getAbsoluteUrl(entries.items[0].fields.image?.fields.file.url || ''),
-        content: entries.items[0].fields.content || '',
-      }
-    : null;
+  const latestPost: Post | null = entries.items.length > 0
+  ? {
+      id: entries.items[0].sys.id,
+      title: entries.items[0].fields.title || 'Untitled',
+      date: entries.items[0].fields.date || '',
+      image: getAbsoluteUrl(entries.items[0].fields.image?.fields.file.url || ''),
+      content: entries.items[0].fields.content || '',
+    }
+  : null;
+
 
   return (
     <>
