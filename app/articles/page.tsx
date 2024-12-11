@@ -58,9 +58,10 @@ const getAbsoluteUrl = (url: string): string => {
 export default async function ArticlesPage({
   searchParams,
 }: {
-  searchParams?: Record<string, string | undefined>; // Flexible typing for searchParams
+  searchParams: Promise<Record<string, string | undefined>> | undefined; 
 }) {
-  const { search = '', genre = '', tags = '' } = searchParams || {};
+  const resolvedSearchParams = await Promise.resolve(searchParams || {}); 
+  const { search = '', genre = '', tags = '' } = resolvedSearchParams;
 
   const entries = await client.getEntries({ content_type: 'blogPosts' });
 
