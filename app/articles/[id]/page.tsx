@@ -6,21 +6,25 @@ import { format } from 'date-fns';
 import { marked } from 'marked';
 import '../../../styles/globals.css';
 import Image from 'next/image';
-import { Entry } from 'contentful'; 
+import { Entry, EntrySkeletonType } from 'contentful'; 
 
-interface BlogPostFields {
-  title: string;
-  date: string;
-  image: {
-    fields: {
-      file: {
-        url: string;
+
+interface BlogPostFields extends EntrySkeletonType {
+  fields: {
+    title: string;
+    date: string;
+    image: {
+      fields: {
+        file: {
+          url: string;
+        };
       };
     };
+    content: string;
+    genre?: string;
+    tags?: string[];
   };
-  content: string;
-  genre?: string;
-  tags?: string[];
+  contentTypeId: 'blogPosts'; 
 }
 
 const formatContentAsHTML = async (content: string | Promise<string>): Promise<string> => {
@@ -35,7 +39,7 @@ export default async function SingleArticle({
 }) {
   const { id } = await params;
 
-
+  
   const entry: Entry<BlogPostFields> = await client.getEntry<BlogPostFields>(id);
 
   if (!entry) {
