@@ -48,20 +48,28 @@ export default async function SingleArticle({
 
   const dateField = entry.fields.date;
   const formattedDate = dateField
-    ? format(new Date(dateField), 'MMMM d, yyyy') 
+    ? format(new Date(String(dateField)), 'MMMM d, yyyy') 
     : 'Unknown Date'; 
 
-  const article = {
-    id: entry.sys.id,
-    title: entry.fields.title,
-    date: formattedDate,
-    image: entry.fields.image.fields.file.url.startsWith('http')
-      ? entry.fields.image.fields.file.url
-      : `https:${entry.fields.image.fields.file.url}`,
-    content: await formatContentAsHTML(entry.fields.content),
-    genre: entry.fields.genre || '',
-    tags: entry.fields.tags || [],
-  };
+    const image: string = (() => {
+      const imageUrl = entry?.fields?.image?.fields?.file?.url;
+    
+      if (!imageUrl) {
+        throw new Error("Image URL must be provided");
+      }
+    
+      return imageUrl.startsWith('http') ? imageUrl : `https:${imageUrl}`;
+    })();
+    
+    const article = {
+      id: entry.sys.id,
+      title: entry.fields.title,
+      date: formattedDate,
+      image: image,
+      content: await formatContentAsHTML(entry.fields.content), 
+      genre: entry.fields.genre || '',
+      tags: entry.fields.tags || [],
+    };
 
   return (
     <>
