@@ -46,8 +46,12 @@ export default async function SingleArticle({
 }) {
   const { id } = params;
 
-  // Fetch the article entry by ID
+
   const entry = await client.getEntry<Entry>(id);
+
+  if (!entry) {
+    return <div>Article not found.</div>;
+  }
 
   const article: Post = {
     id: entry.sys.id,
