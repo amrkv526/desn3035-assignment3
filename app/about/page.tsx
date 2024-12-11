@@ -2,6 +2,7 @@ import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import '../../styles/globals.css';
+import Image from 'next/image';
 
 export default function About() {
   return (
@@ -20,7 +21,7 @@ export default function About() {
           a variety of careers and interests.
         </p>
         <div className="about-image">
-          <img src="/assets/toronto.jpg" alt="Toronto" className="toronto-image" />
+          <Image src="/assets/toronto.jpg" alt="Toronto" className="toronto-image" width={750} height={300}/>
         </div>
         <h2>What You Can Expect</h2>
         <p>

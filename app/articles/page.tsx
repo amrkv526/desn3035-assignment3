@@ -7,6 +7,7 @@ import { marked } from 'marked';
 import he from 'he';
 import { format } from 'date-fns';
 import '../../styles/globals.css';
+import Image from 'next/image';
 
 interface Post {
   id: string;
@@ -26,10 +27,40 @@ interface Props {
   };
 }
 
+interface Entry {
+  sys: {
+    id: string;
+  };
+  fields: {
+    title: string;
+    date: string;
+    image: {
+      fields: {
+        file: {
+          url: string;
+        };
+      };
+    };
+    content: string;
+    genre?: string;
+    tags?: string[];
+  };
+}
+
 const extractFirstParagraph = (content: string): string => {
   const htmlContent = marked(content); 
   const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/); 
   return match ? he.decode(match[1]) : ''; 
+};
+
+const getAbsoluteUrl = (url: string): string => {
+  if (url.startsWith('//')) {
+    return `https:${url}`; 
+  }
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`; 
+  }
+  return url; 
 };
 
 export default async function ArticlesPage({ searchParams }: Props) {
@@ -37,15 +68,19 @@ export default async function ArticlesPage({ searchParams }: Props) {
 
   const entries = await client.getEntries({ content_type: 'blogPosts' });
 
-  const posts: Post[] = entries.items.map((entry: any) => ({
-    id: entry.sys.id,
-    title: entry.fields.title,
-    date: entry.fields.date,
-    image: entry.fields.image.fields.file.url,
-    content: entry.fields.content,
-    genre: entry.fields.genre || '',
-    tags: entry.fields.tags || [],
-  }));
+  const posts: Post[] = entries.items.map((entry: Entry) => {
+    const { id } = entry.sys;
+    const { title, date, image, content, genre = '', tags = [] } = entry.fields;
+    return {
+      id,
+      title,
+      date,
+      image: getAbsoluteUrl(image.fields.file.url),
+      content,
+      genre,
+      tags,
+    };
+  });
 
   const filteredPosts = posts.filter((post) => {
     const matchesSearch = search
@@ -104,12 +139,23 @@ export default async function ArticlesPage({ searchParams }: Props) {
           filteredPosts.map((post) => (
             <article key={post.id}>
               <h3>
-             <Link href={`/articles/${post.id}`}>{post.title}</Link>
+                <Link href={`/articles/${post.id}`}>{post.title}</Link>
               </h3>
               <p className="date">
                 Published on: {format(new Date(post.date), 'MMMM d, yyyy')}
               </p>
-              <img src={post.image} alt={post.title} />
+              {post.image ? (
+                <Image
+                  src={post.image}
+                  alt={post.title || 'Article image'}
+                  width={750}
+                  height={300}
+                />
+              ) : (
+                <div className="placeholder-image">
+                  <p>No image available</p>
+                </div>
+              )}
               <p>{extractFirstParagraph(post.content)}...</p>
               <Link href={`/articles/${post.id}`}>Read more</Link>
             </article>

@@ -5,6 +5,7 @@ import client from './utils/contentful';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { marked } from 'marked';
+import Image from 'next/image';
 
 interface Post {
   id: string;
@@ -15,9 +16,16 @@ interface Post {
 }
 
 const getFirstParagraph = (content: string): string => {
-  const htmlContent = marked(content); 
-  const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/); 
-  return match ? match[1] : ''; 
+  const htmlContent = marked(content);
+  const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/);
+  return match ? match[1] : '';
+};
+
+const getAbsoluteUrl = (url: string): string => {
+  if (url.startsWith('//')) {
+    return `https:${url}`;
+  }
+  return url;
 };
 
 export default async function Home() {
@@ -30,10 +38,10 @@ export default async function Home() {
   const latestPost = entries.items.length > 0
     ? {
         id: entries.items[0].sys.id,
-        title: entries.items[0].fields.title,
-        date: entries.items[0].fields.date,
-        image: entries.items[0].fields.image.fields.file.url,
-        content: entries.items[0].fields.content,
+        title: entries.items[0].fields.title || 'Untitled',
+        date: entries.items[0].fields.date || '',
+        image: getAbsoluteUrl(entries.items[0].fields.image?.fields.file.url || ''),
+        content: entries.items[0].fields.content || '',
       }
     : null;
 
@@ -51,7 +59,12 @@ export default async function Home() {
             <p className="date">
               Published on: {format(new Date(latestPost.date), 'MMMM d, yyyy')}
             </p>
-            <img src={latestPost.image} alt={latestPost.title} />
+            <Image
+              src={latestPost.image}
+              alt={latestPost.title || 'Article image'}
+              width={750}
+              height={300}
+            />
             <p>{getFirstParagraph(latestPost.content)}</p>
             <Link href={`/articles/${latestPost.id}`}>Read full article</Link>
           </article>
