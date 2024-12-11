@@ -45,6 +45,7 @@ export default async function SingleArticle({
   params: { id: string };
 }) {
   const { id } = params;
+
   const entry = await client.getEntry<Entry>(id);
 
   if (!entry) {

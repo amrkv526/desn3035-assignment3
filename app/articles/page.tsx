@@ -58,7 +58,7 @@ const getAbsoluteUrl = (url: string): string => {
 export default async function ArticlesPage({
   searchParams,
 }: {
-  searchParams?: { search?: string; genre?: string; tags?: string };
+  searchParams?: Record<string, string | undefined>; // Flexible typing for searchParams
 }) {
   const { search = '', genre = '', tags = '' } = searchParams || {};
 
