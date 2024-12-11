@@ -6,33 +6,22 @@ import { format } from 'date-fns';
 import { marked } from 'marked';
 import '../../../styles/globals.css';
 import Image from 'next/image';
+import { Entry } from 'contentful'; 
 
-
-interface Entry {
-  sys: {
-    id: string;
-    contentType: {
-      sys: {
-        id: string;
+interface BlogPostFields {
+  title: string;
+  date: string;
+  image: {
+    fields: {
+      file: {
+        url: string;
       };
     };
   };
-  fields: {
-    title: string;
-    date: string;
-    image: {
-      fields: {
-        file: {
-          url: string;
-        };
-      };
-    };
-    content: string;
-    genre?: string;
-    tags?: string[];
-  };
+  content: string;
+  genre?: string;
+  tags?: string[];
 }
-
 
 const formatContentAsHTML = async (content: string | Promise<string>): Promise<string> => {
   const resolvedContent = await Promise.resolve(content);
@@ -47,7 +36,7 @@ export default async function SingleArticle({
   const { id } = await params;
 
 
-  const entry = await client.getEntry<Entry>(id);
+  const entry: Entry<BlogPostFields> = await client.getEntry<BlogPostFields>(id);
 
   if (!entry) {
     return <div>Article not found.</div>;
@@ -93,7 +82,7 @@ export default async function SingleArticle({
 }
 
 export async function generateStaticParams() {
-  const entries = await client.getEntries<Entry>({ content_type: 'blogPosts' });
+  const entries = await client.getEntries<BlogPostFields>({ content_type: 'blogPosts' });
 
   return entries.items.map((entry) => ({
     id: entry.sys.id,
