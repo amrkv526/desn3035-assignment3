@@ -20,11 +20,7 @@ interface Post {
 }
 
 interface Props {
-  searchParams: Promise<{
-    search?: string;
-    genre?: string;
-    tags?: string;
-  }>;
+  searchParams: { search?: string; genre?: string; tags?: string }; // No need for a Promise
 }
 
 interface Entry {
@@ -64,9 +60,7 @@ const getAbsoluteUrl = (url: string): string => {
 };
 
 export default async function ArticlesPage({ searchParams }: Props) {
-  const resolvedSearchParams = await searchParams; 
-
-  const { search = '', genre = '', tags = '' } = resolvedSearchParams;
+  const { search = '', genre = '', tags = '' } = searchParams; 
 
   const entries = await client.getEntries({ content_type: 'blogPosts' });
 
