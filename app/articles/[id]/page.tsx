@@ -17,12 +17,32 @@ interface Post {
   tags: string[];
 }
 
+interface Entry {
+  sys: {
+    id: string;
+  };
+  fields: {
+    title: string;
+    date: string;
+    image: {
+      fields: {
+        file: {
+          url: string;
+        };
+      };
+    };
+    content: string;
+    genre?: string;
+    tags?: string[];
+  };
+}
+
 const formatContentAsHTML = (content: string): string => marked(content);
 
 export async function generateStaticParams() {
-  const entries = await client.getEntries({ content_type: 'blogPosts' });
+  const entries = await client.getEntries<Entry>({ content_type: 'blogPosts' });
 
-  return entries.items.map((entry: any) => ({
+  return entries.items.map((entry) => ({
     id: entry.sys.id,
   }));
 }
@@ -30,20 +50,19 @@ export async function generateStaticParams() {
 export default async function SingleArticle({ params }: { params: { id: string } }) {
   const { id } = params;
 
-  const entry = await client.getEntry(id);
+  const entry = await client.getEntry<Entry>(id);
 
   const article: Post = {
     id: entry.sys.id,
     title: entry.fields.title,
-    date: format(new Date(entry.fields.date), 'MMMM d, yyyy'), 
-    image: entry.fields.image.fields.file.url.startsWith('http') 
-      ? entry.fields.image.fields.file.url 
-      : `https:${entry.fields.image.fields.file.url}`, 
-    content: formatContentAsHTML(entry.fields.content), 
+    date: format(new Date(entry.fields.date), 'MMMM d, yyyy'),
+    image: entry.fields.image.fields.file.url.startsWith('http')
+      ? entry.fields.image.fields.file.url
+      : `https:${entry.fields.image.fields.file.url}`,
+    content: formatContentAsHTML(entry.fields.content),
     genre: entry.fields.genre || '',
     tags: entry.fields.tags || [],
   };
-  
 
   return (
     <>
