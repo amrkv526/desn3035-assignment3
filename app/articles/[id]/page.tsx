@@ -39,14 +39,6 @@ interface Entry {
 
 const formatContentAsHTML = (content: string): string => marked(content);
 
-export async function generateStaticParams() {
-  const entries = await client.getEntries<Entry>({ content_type: 'blogPosts' });
-
-  return entries.items.map((entry) => ({
-    id: entry.sys.id,
-  }));
-}
-
 export default async function SingleArticle({ params }: { params: { id: string } }) {
   const { id } = params;
 
@@ -89,4 +81,12 @@ export default async function SingleArticle({ params }: { params: { id: string }
       <Footer />
     </>
   );
+}
+
+export async function generateStaticParams() {
+  const entries = await client.getEntries<Entry>({ content_type: 'blogPosts' });
+
+  return entries.items.map((entry) => ({
+    id: entry.sys.id,
+  }));
 }
