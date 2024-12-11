@@ -19,48 +19,69 @@ interface Post {
   tags: string[];
 }
 
-export async function getServerSideProps(context: { query: Record<string, string | undefined> }) {
-  const { search = '', genre = '', tags = '' } = context.query;
+interface Entry {
+  sys: {
+    id: string;
+  };
+  fields: {
+    title: string;
+    date: string;
+    image: {
+      fields: {
+        file: {
+          url: string;
+        };
+      };
+    };
+    content: string;
+    genre?: string;
+    tags?: string[];
+  };
+}
+
+const extractFirstParagraph = (content: string): string => {
+  const htmlContent = marked(content);
+  const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/);
+  return match ? he.decode(match[1]) : '';
+};
+
+const getAbsoluteUrl = (url: string): string => {
+  if (url.startsWith('//')) {
+    return `https:${url}`;
+  }
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+export default async function ArticlesPage({
+  searchParams,
+}: {
+  searchParams: {
+    search?: string;
+    genre?: string;
+    tags?: string;
+  };
+}) {
+  const { search = '', genre = '', tags = '' } = searchParams;
 
   const entries = await client.getEntries({ content_type: 'blogPosts' });
 
-  const posts: Post[] = entries.items.map((entry: any) => {
+  const posts: Post[] = entries.items.map((entry: Entry) => {
     const { id } = entry.sys;
     const { title, date, image, content, genre = '', tags = [] } = entry.fields;
     return {
       id,
       title,
       date,
-      image: image.fields.file.url.startsWith('http')
-        ? image.fields.file.url
-        : `https:${image.fields.file.url}`,
+      image: getAbsoluteUrl(image.fields.file.url),
       content,
       genre,
       tags,
     };
   });
 
-  return {
-    props: {
-      posts,
-      search,
-      genre,
-      tags,
-    },
-  };
-}
-
-export default function ArticlesPage({
-  posts,
-  search,
-  genre,
-  tags,
-}: {
-  posts: Post[];
-  search: string;
-  genre: string;
-  tags: string;
-}) {
   const filteredPosts = posts.filter((post) => {
     const matchesSearch = search ? post.title.toLowerCase().includes(search.toLowerCase()) : true;
     const matchesGenre = genre ? post.genre === genre : true;
@@ -112,13 +133,14 @@ export default function ArticlesPage({
                 <Link href={`/articles/${post.id}`}>{post.title}</Link>
               </h3>
               <p className="date">Published on: {format(new Date(post.date), 'MMMM d, yyyy')}</p>
-              <Image
-                src={post.image}
-                alt={post.title}
-                width={750}
-                height={300}
-              />
-              <p>{marked(post.content)}</p>
+              {post.image ? (
+                <Image src={post.image} alt={post.title || 'Article image'} width={750} height={300} />
+              ) : (
+                <div className="placeholder-image">
+                  <p>No image available</p>
+                </div>
+              )}
+              <p>{extractFirstParagraph(post.content)}...</p>
               <Link href={`/articles/${post.id}`}>Read more</Link>
             </article>
           ))
