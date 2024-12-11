@@ -39,7 +39,11 @@ interface Entry {
 
 const formatContentAsHTML = (content: string): string => marked(content);
 
-export default async function SingleArticle({ params }: { params: { id: string } }) {
+export default async function SingleArticle({
+  params,
+}: {
+  params: { id: string };
+}) {
   const { id } = params;
 
   const entry = await client.getEntry<Entry>(id);
