@@ -59,8 +59,10 @@ const getAbsoluteUrl = (url: string): string => {
   return url;
 };
 
-export default async function ArticlesPage({ searchParams }: Props) {
-  const { search = '', genre = '', tags = '' } = searchParams || {}; 
+export default async function ArticlesPage({
+  searchParams,
+}: { searchParams?: { search?: string; genre?: string; tags?: string } }) {
+  const { search = '', genre = '', tags = '' } = searchParams || {};
 
   const entries = await client.getEntries({ content_type: 'blogPosts' });
 
