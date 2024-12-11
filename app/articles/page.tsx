@@ -25,12 +25,14 @@ interface EntryFields {
   tags?: string[];
 }
 
+
 interface ContentfulEntry {
   sys: {
     id: string;
   };
   fields: EntryFields;
 }
+
 
 interface Post {
   id: string;
@@ -41,6 +43,7 @@ interface Post {
   genre: string;
   tags: string[];
 }
+
 
 const transformEntryToPost = async (entry: ContentfulEntry): Promise<Post> => {
   const { sys, fields } = entry;
@@ -57,18 +60,20 @@ const transformEntryToPost = async (entry: ContentfulEntry): Promise<Post> => {
 };
 
 interface PageProps {
-  searchParams?: Record<string, string | undefined>;
+  searchParams?: Promise<Record<string, string | undefined>> | undefined;
 }
 
 export default async function ArticlesPage({ searchParams }: PageProps) {
-  const resolvedSearchParams = searchParams || {};
+  const resolvedSearchParams = (await searchParams) || {};
   const { search = '', genre = '', tags = '' } = resolvedSearchParams;
 
   try {
     const rawEntries = await client.getEntries({ content_type: 'blogPosts' });
 
+    
     const posts: Post[] = await Promise.all(rawEntries.items.map(transformEntryToPost));
 
+    
     const filteredPosts = posts.filter((post) => {
       const matchesSearch = search
         ? post.title.toLowerCase().includes(search.toLowerCase())
