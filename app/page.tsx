@@ -1,18 +1,41 @@
-"use client";
+import Header from './components/Header';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import client from './utils/contentful';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { marked } from 'marked';
 
-import Header from '../components/Header';
-import Footer from '../components/Footer';
-import Navbar from '../components/Navbar';
-import { useState } from 'react';
-import '../styles/globals.css';
+interface Post {
+  id: string;
+  title: string;
+  date: string;
+  image: string;
+  content: string;
+}
 
-export default function Home() {
-  const [submitted, setSubmitted] = useState(false);
+const getFirstParagraph = (content: string): string => {
+  const htmlContent = marked(content); 
+  const match = htmlContent.match(/<p>([\s\S]*?)<\/p>/); 
+  return match ? match[1] : ''; 
+};
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
+export default async function Home() {
+  const entries = await client.getEntries({
+    content_type: 'blogPosts',
+    order: '-fields.date',
+    limit: 1,
+  });
+
+  const latestPost = entries.items.length > 0
+    ? {
+        id: entries.items[0].sys.id,
+        title: entries.items[0].fields.title,
+        date: entries.items[0].fields.date,
+        image: entries.items[0].fields.image.fields.file.url,
+        content: entries.items[0].fields.content,
+      }
+    : null;
 
   return (
     <>
@@ -20,27 +43,21 @@ export default function Home() {
       <Navbar />
       <div className="content">
         <h2>Latest Article</h2>
-        <article>
-          <h3>Most Anticipated Toronto DJ Events</h3>
-          <p className="date">Published on: October 1, 2024</p>
-          <img src="/assets/rave.jpg" alt="Rave scene" />
-          <p>
-            This fall, Toronto's techno scene is bringing some of the most electrifying DJ sets
-            to the city's underground venues. 
-          </p>
-          <a href="/articles">Read full article</a>
-        </article>
-        <div className="newsletter-signup">
-          <h2>Subscribe to my Newsletter</h2>
-          {!submitted ? (
-            <form onSubmit={handleSubmit}>
-              <input type="email" placeholder="Email address" required />
-              <button type="submit">Subscribe</button>
-            </form>
-          ) : (
-            <p>Thank you for subscribing to my newsletter!</p>
-          )}
-        </div>
+        {latestPost ? (
+          <article>
+            <h3>
+              <Link href={`/articles/${latestPost.id}`}>{latestPost.title}</Link>
+            </h3>
+            <p className="date">
+              Published on: {format(new Date(latestPost.date), 'MMMM d, yyyy')}
+            </p>
+            <img src={latestPost.image} alt={latestPost.title} />
+            <p>{getFirstParagraph(latestPost.content)}</p>
+            <Link href={`/articles/${latestPost.id}`}>Read full article</Link>
+          </article>
+        ) : (
+          <p>No articles available.</p>
+        )}
       </div>
       <Footer />
     </>
