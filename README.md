@@ -11,7 +11,8 @@ This is a web application built using **Next.js** and **React**. It features an 
   - [Running the Project](#running-the-project)
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
-- [Deployment](#deployment)
+- [Libraries Used](#libraries-used)
+- [Vercel Deployment](#vercel-deployment)
 
 ---
 
@@ -83,32 +84,9 @@ To fetch articles from Contentful, ensure you have a Contentful space with a `bl
 
 ---
 
-## Deployment
+## Libraries Used
 
-The application can be deployed to platforms like **Vercel** or **Netlify**.
-
-### Deploying to Vercel
-
-1. Install the Vercel CLI (optional):
-   ```bash
-   npm install -g vercel
-   ```
-
-2. Deploy the project:
-   ```bash
-   vercel
-   ```
-
-3. Follow the interactive prompts to set up your deployment.
-
-### Deploying to GitHub Pages
-
-1. Add a GitHub Actions workflow for deployment.
-2. Ensure the `GITHUB_TOKEN` has the `id-token: write` permission.
-
----
-
-## Dependencies
+The following libraries are used in this project:
 
 ### Core Dependencies
 - `next` (v15.0.3)
@@ -116,11 +94,47 @@ The application can be deployed to platforms like **Vercel** or **Netlify**.
 - `react-dom` (v18.2.0)
 - `contentful` (v11.3.1)
 - `marked` (v15.0.3)
+- `howler` (v2.2.4)
+- `react-audio-visualize` (v1.2.0)
+- `react-player` (v2.16.0)
+- `dompurify` (v3.2.3)
+- `he` (v1.2.0)
+- `jsdom` (v25.0.1)
+- `date-fns` (v4.1.0)
+- `nodemailer` (v6.9.16)
 
 ### Dev Dependencies
 - `typescript` (v5)
 - `eslint` (v8)
+- `eslint-config-next` (v15.0.3)
 - `@types/react` (v18)
+- `@types/react-dom` (v18)
+- `@types/node` (v20)
+- `@types/nodemailer` (v6.4.17)
+- `@types/he` (v1.2.3)
+
+---
+
+## Vercel Deployment
+
+The application is deployed to Vercel at the following URL:
+[desn3035-assignment3.vercel.app](https://desn3035-assignment3.vercel.app)
+
+### Steps to Deploy to Vercel
+
+1. **Install the Vercel CLI (optional):**
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Deploy the Project:**
+   ```bash
+   vercel
+   ```
+
+3. Follow the interactive prompts to set up your deployment.
+
+Once deployed, any updates pushed to the main branch will automatically trigger a redeployment on Vercel.
 
 ---
 
